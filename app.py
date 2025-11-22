@@ -55,7 +55,7 @@ if section == "Formatter":
 
     btn_col1, btn_col2 = st.columns([1, 1])
     format_clicked = btn_col1.button("✅ Format")
-    btn_col2.button("🗑️ Clear", on_click=lambda: clear_text("raw_text_value"))
+    btn_col2.button("🗑️ Clear", on_click=lambda: clear_text("raw_text_value"), type="primary")
 
     if format_clicked:
         text = st.session_state.raw_text_value.strip()
