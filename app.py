@@ -54,8 +54,8 @@ if section == "Formatter":
     raw_text = st.text_area("Or paste your content here:", height=200, key="raw_text_value")
 
     btn_col1, btn_col2 = st.columns([1, 1])
-    format_clicked = btn_col1.button("✅ Format")
-    btn_col2.button("🗑️ Clear", on_click=lambda: clear_text("raw_text_value"), type="primary")
+    format_clicked = btn_col1.button("Format", type="primary", icon=":material/tune:")
+    btn_col2.button("Clear", on_click=lambda: clear_text("raw_text_value"), type="primary", icon=":material/delete:")
 
     if format_clicked:
         text = st.session_state.raw_text_value.strip()
@@ -91,7 +91,8 @@ if section == "Formatter":
                     label=f"Download formatted {fmt_type}",
                     data=formatted,
                     file_name=f"formatted.{fmt_type.lower()}",
-                    mime="text/plain"
+                    mime="text/plain", icon=":material/file_download:",
+                    type="primary"
                 )
 
                 if fmt_type in ["JSON", "XML", "YAML", "TOML", "INI"]:
@@ -106,20 +107,20 @@ if section == "Formatter":
     st.subheader("🔍 Validation / Linting")
     if fmt_type == "JSON":
         schema_text = st.text_area("Paste JSON Schema (optional):", key="json_schema")
-        if st.button("Validate JSON"):
+        if st.button("Validate JSON", type="primary", icon=":material/fact_check:"):
             if schema_text.strip():
                 st.info(validate_json_schema(st.session_state.raw_text_value, schema_text))
             else:
                 st.warning("Please provide a JSON Schema to validate against.")
     elif fmt_type == "XML":
         xsd_text = st.text_area("Paste XSD Schema (optional):", key="xml_xsd")
-        if st.button("Validate XML"):
+        if st.button("Validate XML", type="primary", icon=":material/fact_check:"):
             if xsd_text.strip():
                 st.info(validate_xml_xsd(st.session_state.raw_text_value, xsd_text))
             else:
                 st.warning("Please provide an XSD Schema to validate against.")
     elif fmt_type == "YAML":
-        if st.button("Lint YAML"):
+        if st.button("Lint YAML", type="primary"):
             st.info(lint_yaml(st.session_state.raw_text_value))
 
 # ---------------- Diff Viewer Section ----------------
@@ -129,12 +130,12 @@ elif section == "Diff Viewer":
     col1, col2 = st.columns(2)
     with col1:
         original_text = st.text_area("Original content:", height=200, key="diff_original")
-        st.button("🗑️ Clear Original", on_click=lambda: clear_text("diff_original"))
+        st.button("Clear Original", on_click=lambda: clear_text("diff_original"), type="primary", icon=":material/delete:")
     with col2:
         modified_text = st.text_area("Modified / formatted content:", height=200, key="diff_modified")
-        st.button("🗑️ Clear Modified", on_click=lambda: clear_text("diff_modified"))
+        st.button("Clear Modified", on_click=lambda: clear_text("diff_modified"), type="primary", icon=":material/delete:")
 
-    if st.button("Show Diff"):
+    if st.button("Show Diff", type="primary"):
         if original_text.strip() == "" or modified_text.strip() == "":
             st.warning("Please provide both original and modified content.")
         else:
@@ -155,25 +156,25 @@ elif section == "Multi-Format Conversion":
         st.session_state.raw_text_value = uploaded_file.read().decode("utf-8")
 
     raw_text = st.text_area("Paste JSON or XML:", height=200, key="raw_text_value")
-    st.button("🗑️ Clear", on_click=lambda: clear_text("raw_text_value"))
+    st.button("🗑️ Clear", on_click=lambda: clear_text("raw_text_value"), type="primary")
 
     col1, col2 = st.columns([1,1])
-    if col1.button("Convert JSON → XML"):
+    if col1.button("Convert JSON → XML", type="primary"):
         try:
             obj = json.loads(st.session_state.raw_text_value)
             xml_str = xmltodict.unparse({"root": obj}, pretty=True)
             st.success("Converted JSON to XML:")
             st.code(xml_str, language="xml")
-            st.download_button("Download XML", xml_str, "converted.xml", "text/xml")
+            st.download_button("Download XML", xml_str, "converted.xml", "text/xml", icon=":material/file_download:")
         except Exception as e:
             st.error(f"Conversion failed: {e}")
 
-    if col2.button("Convert XML → JSON"):
+    if col2.button("Convert XML → JSON", type="primary"):
         try:
             obj = xmltodict.parse(st.session_state.raw_text_value)
             json_str = json.dumps(obj, indent=4)
             st.success("Converted XML to JSON:")
             st.code(json_str, language="json")
-            st.download_button("Download JSON", json_str, "converted.json", "application/json")
+            st.download_button("Download JSON", json_str, "converted.json", "application/json", icon=":material/file_download:")
         except Exception as e:
             st.error(f"Conversion failed: {e}")
