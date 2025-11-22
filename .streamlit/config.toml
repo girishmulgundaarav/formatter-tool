@@ -1,6 +1,13 @@
 [theme]
 base="light"
-primaryColor="#2196F3"          # Button + accent (blue)
-backgroundColor="#FFFFFF"
-secondaryBackgroundColor="#F5F7FA"
-textColor="#000000"
+
+# Accent colors
+primaryColor="#4CAF50"            # Buttons, sliders, checkboxes (fresh green)
+secondaryBackgroundColor="#F0F2F6" # Sidebar + widget background (soft gray)
+backgroundColor="#FFFFFF"          # Main app background (white)
+textColor="#000000"                # Primary text (black)
+
+# Optional: tweak success/info colors
+successColor="#2E7D32"             # Darker green for st.success messages
+warningColor="#F57C00"             # Orange for st.warning
+errorColor="#D32F2F"               # Red for st.error
