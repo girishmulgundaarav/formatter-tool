@@ -43,13 +43,6 @@ Feel free to fork, star ⭐, or contribute!
 ## 📄 License
 This project is licensed under the MIT License.
 
----
-
-✨ That’s everything neatly inside your `README.md`.  
-- The **LICENSE text itself** should still go in a separate `LICENSE` file (GitHub expects that).  
-- But the README now references it so visitors know the project is MIT licensed.  
-
-Would you like me to also add **badges** (Python version, Streamlit, MIT License, “Made with ❤️ in India”) at the top of the README so it looks extra professional on GitHub?
 
 ## 📦 Installation
 
