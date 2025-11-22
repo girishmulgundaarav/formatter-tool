@@ -51,7 +51,7 @@ if section == "Formatter":
     if uploaded_file is not None:
         st.session_state.raw_text_value = uploaded_file.read().decode("utf-8")
 
-    raw_text = st.text_area("Or paste your content here:", height=200, key="raw_text_value")
+    raw_text = st.text_area("Or paste your content here:", height=300, key="raw_text_value")
 
     btn_col1, btn_col2 = st.columns([1, 1])
     format_clicked = btn_col1.button("Format", type="primary", icon=":material/tune:")
@@ -129,10 +129,10 @@ elif section == "Diff Viewer":
 
     col1, col2 = st.columns(2)
     with col1:
-        original_text = st.text_area("Original content:", height=200, key="diff_original")
+        original_text = st.text_area("Original content:", height=400, key="diff_original")
         st.button("Clear Original", on_click=lambda: clear_text("diff_original"), type="primary", icon=":material/delete:")
     with col2:
-        modified_text = st.text_area("Modified / formatted content:", height=200, key="diff_modified")
+        modified_text = st.text_area("Modified / formatted content:", height=400, key="diff_modified")
         st.button("Clear Modified", on_click=lambda: clear_text("diff_modified"), type="primary", icon=":material/delete:")
 
     if st.button("Show Diff", type="primary"):
@@ -155,7 +155,7 @@ elif section == "Multi-Format Conversion":
     if uploaded_file is not None:
         st.session_state.raw_text_value = uploaded_file.read().decode("utf-8")
 
-    raw_text = st.text_area("Paste JSON or XML:", height=200, key="raw_text_value")
+    raw_text = st.text_area("Paste JSON or XML:", height=400, key="raw_text_value")
     st.button("Clear", on_click=lambda: clear_text("raw_text_value"), type="primary", icon=":material/delete:")
 
     col1, col2 = st.columns([1,1])
