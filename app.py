@@ -25,6 +25,10 @@ def clear_on_section_change():
 # ---------------- Page config ----------------
 st.set_page_config(page_title="Multi-Format Formatter", layout="wide")
 
+# ---------------- Sidebar branding ----------------
+st.sidebar.image("logo.png", use_container_width=True)
+st.sidebar.markdown("### Multi-Format Formatter")
+
 # Sidebar: choose section
 section = st.sidebar.radio(
     "Choose section:",
