@@ -156,25 +156,25 @@ elif section == "Multi-Format Conversion":
         st.session_state.raw_text_value = uploaded_file.read().decode("utf-8")
 
     raw_text = st.text_area("Paste JSON or XML:", height=200, key="raw_text_value")
-    st.button("🗑️ Clear", on_click=lambda: clear_text("raw_text_value"), type="primary")
+    st.button("Clear", on_click=lambda: clear_text("raw_text_value"), type="primary", icon=":material/delete:")
 
     col1, col2 = st.columns([1,1])
-    if col1.button("Convert JSON → XML", type="primary"):
+    if col1.button("Convert JSON → XML", type="primary", icon=":material/swap_horiz:"):
         try:
             obj = json.loads(st.session_state.raw_text_value)
             xml_str = xmltodict.unparse({"root": obj}, pretty=True)
             st.success("Converted JSON to XML:")
             st.code(xml_str, language="xml")
-            st.download_button("Download XML", xml_str, "converted.xml", "text/xml", icon=":material/file_download:")
+            st.download_button("Download XML", xml_str, "converted.xml", "text/xml", type="primary", icon=":material/file_download:")
         except Exception as e:
             st.error(f"Conversion failed: {e}")
 
-    if col2.button("Convert XML → JSON", type="primary"):
+    if col2.button("Convert XML → JSON", type="primary", icon=":material/swap_horiz:"):
         try:
             obj = xmltodict.parse(st.session_state.raw_text_value)
             json_str = json.dumps(obj, indent=4)
             st.success("Converted XML to JSON:")
             st.code(json_str, language="json")
-            st.download_button("Download JSON", json_str, "converted.json", "application/json", icon=":material/file_download:")
+            st.download_button("Download JSON", json_str, "converted.json", "application/json", type="primary", icon=":material/file_download:")
         except Exception as e:
             st.error(f"Conversion failed: {e}")
