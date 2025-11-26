@@ -160,20 +160,40 @@ if section == "Formatter":
 
 # ---------------- Diff Viewer Section ----------------
 elif section == "Diff Viewer":
-    st.title("🔍 Diff Viewer")
+    st.title("Diff Viewer")
+
+    # Initialize defaults
+    if "diff_original" not in st.session_state:
+        st.session_state.diff_original = "def hello():\n    print('Hello world')"
+    if "diff_modified" not in st.session_state:
+        st.session_state.diff_modified = "def hello():\n    print('Hello, Girish!')"
 
     col1, col2 = st.columns(2)
     with col1:
-        original_text = st.text_area("Original content:", height=400, key="diff_original")
-        st.button("Clear Original", on_click=lambda: clear_text("diff_original"), type="primary", icon=":material/delete:")
+        st.subheader("Original")
+        st.session_state.diff_original = st.text_area(
+            " ",  # label intentionally blank
+            value=st.session_state.diff_original,
+            height=300,
+            key="diff_original_area",
+        )
     with col2:
-        modified_text = st.text_area("Modified / formatted content:", height=400, key="diff_modified")
-        st.button("Clear Modified", on_click=lambda: clear_text("diff_modified"), type="primary", icon=":material/delete:")
+        st.subheader("Modified")
+        st.session_state.diff_modified = st.text_area(
+            " ",
+            value=st.session_state.diff_modified,
+            height=300,
+            key="diff_modified_area",
+        )
 
-    if st.button("Show Diff", type="primary"):
-        if original_text.strip() == "" or modified_text.strip() == "":
+    if st.button("View Diff", type="primary"):
+        original_text = st.session_state.diff_original or ""
+        modified_text = st.session_state.diff_modified or ""
+
+        if not original_text.strip() or not modified_text.strip():
             st.warning("Please provide both original and modified content.")
         else:
+            import difflib
             diff = difflib.unified_diff(
                 original_text.splitlines(),
                 modified_text.splitlines(),
