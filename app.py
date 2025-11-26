@@ -205,15 +205,17 @@ elif section == "Diff Viewer":
 
 # ---------------- Multi-Format Conversion Section ----------------
 elif section == "Multi-Format Conversion":
-    st.title("🔄 Multi-Format Conversion (JSON ↔ XML)")
-    uploaded_file = st.file_uploader("Upload JSON or XML file", type=["json","xml","txt"])
+    st.title("🔄 Multi-Format Conversion (JSON ↔ XML ↔ TOML ↔ TOON)")
+    uploaded_file = st.file_uploader("Upload JSON, XML, or TOML file", type=["json","xml","toml","txt"])
     if uploaded_file is not None:
         st.session_state.raw_text_value = uploaded_file.read().decode("utf-8")
 
-    raw_text = st.text_area("Paste JSON or XML:", height=400, key="raw_text_value")
+    raw_text = st.text_area("Paste JSON, XML, or TOML:", height=400, key="raw_text_value")
     st.button("Clear", on_click=lambda: clear_text("raw_text_value"), type="primary", icon=":material/delete:")
 
-    col1, col2 = st.columns([1,1])
+    col1, col2, col3, col4 = st.columns([1,1,1,1])
+
+    # JSON → XML
     if col1.button("Convert JSON → XML", type="primary", icon=":material/swap_horiz:"):
         try:
             obj = json.loads(st.session_state.raw_text_value)
@@ -224,6 +226,7 @@ elif section == "Multi-Format Conversion":
         except Exception as e:
             st.error(f"Conversion failed: {e}")
 
+    # XML → JSON
     if col2.button("Convert XML → JSON", type="primary", icon=":material/swap_horiz:"):
         try:
             obj = xmltodict.parse(st.session_state.raw_text_value)
@@ -231,6 +234,36 @@ elif section == "Multi-Format Conversion":
             st.success("Converted XML to JSON:")
             st.code(json_str, language="json")
             st.download_button("Download JSON", json_str, "converted.json", "application/json", type="primary", icon=":material/file_download:")
+        except Exception as e:
+            st.error(f"Conversion failed: {e}")
+
+    # JSON → TOML
+    if col3.button("Convert JSON → TOML", type="primary", icon=":material/swap_horiz:"):
+        try:
+            obj = json.loads(st.session_state.raw_text_value)
+            import toml
+            toml_str = toml.dumps(obj)
+            st.success("Converted JSON to TOML:")
+            st.code(toml_str, language="toml")
+            st.download_button("Download TOML", toml_str, "converted.toml", "text/plain", type="primary", icon=":material/file_download:")
+        except Exception as e:
+            st.error(f"Conversion failed: {e}")
+
+    # JSON → TOON (stub implementation)
+    if col4.button("Convert JSON → TOON", type="primary", icon=":material/swap_horiz:"):
+        try:
+            obj = json.loads(st.session_state.raw_text_value)
+            if isinstance(obj, list) and all(isinstance(d, dict) for d in obj):
+                keys = list(obj[0].keys())
+                toon_lines = [f"{len(obj)} " + " ".join(keys)]
+                for item in obj:
+                    toon_lines.append(" ".join(str(item.get(k, "")) for k in keys))
+                toon_str = "\n".join(toon_lines)
+                st.success("Converted JSON to TOON:")
+                st.code(toon_str, language="text")
+                st.download_button("Download TOON", toon_str, "converted.toon", "text/plain", type="primary", icon=":material/file_download:")
+            else:
+                st.warning("TOON demo currently supports only arrays of objects with identical keys.")
         except Exception as e:
             st.error(f"Conversion failed: {e}")
 
