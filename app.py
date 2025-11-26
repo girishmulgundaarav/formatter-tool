@@ -160,7 +160,7 @@ if section == "Formatter":
 
 # ---------------- Diff Viewer Section ----------------
 elif section == "Diff Viewer":
-    st.title("Diff Viewer")
+    st.title("Diff Viewer (Side by Side)")
 
     # Initialize defaults
     if "diff_original" not in st.session_state:
@@ -172,21 +172,15 @@ elif section == "Diff Viewer":
     with col1:
         st.subheader("Original")
         st.session_state.diff_original = st.text_area(
-            " ",  # label intentionally blank
-            value=st.session_state.diff_original,
-            height=300,
-            key="diff_original_area",
+            " ", value=st.session_state.diff_original, height=300, key="diff_original_area"
         )
     with col2:
         st.subheader("Modified")
         st.session_state.diff_modified = st.text_area(
-            " ",
-            value=st.session_state.diff_modified,
-            height=300,
-            key="diff_modified_area",
+            " ", value=st.session_state.diff_modified, height=300, key="diff_modified_area"
         )
 
-    if st.button("View Diff", type="primary"):
+    if st.button("View Diff (Side by Side)", type="primary"):
         original_text = st.session_state.diff_original or ""
         modified_text = st.session_state.diff_modified or ""
 
@@ -194,14 +188,30 @@ elif section == "Diff Viewer":
             st.warning("Please provide both original and modified content.")
         else:
             import difflib
-            diff = difflib.unified_diff(
+            hd = difflib.HtmlDiff(wrapcolumn=80)
+            html_table = hd.make_table(
                 original_text.splitlines(),
                 modified_text.splitlines(),
-                fromfile="Original",
-                tofile="Modified",
-                lineterm=""
+                fromdesc="Original",
+                todesc="Modified",
+                context=True,
+                numlines=2
             )
-            st.code("\n".join(diff), language="diff")
+
+            # Add CSS for GitHub-style coloring
+            html = f"""
+            <style>
+              table.diff {{ font-family: Menlo, Monaco, Consolas, monospace; width: 100%; border-collapse: collapse; }}
+              .diff_header {{ background: #f6f8fa; font-weight: bold; }}
+              td, th {{ border: 1px solid #e1e4e8; padding: 6px 8px; vertical-align: top; }}
+              .diff_next {{ background: #fffbe6; }}
+              .diff_add {{ background: #e6ffed; }}     /* additions: green */
+              .diff_sub {{ background: #ffeef0; }}     /* deletions: red */
+              .diff_chg {{ background: #fff5b1; }}     /* changes: yellow */
+            </style>
+            {html_table}
+            """
+            st.components.v1.html(html, height=500, scrolling=True)
 
 # ---------------- Multi-Format Conversion Section ----------------
 elif section == "Multi-Format Conversion":
