@@ -159,59 +159,111 @@ if section == "Formatter":
             st.info(lint_yaml(st.session_state.raw_text_value))
 
 # ---------------- Diff Viewer Section ----------------
+
 elif section == "Diff Viewer":
-    st.title("Diff Viewer (Side by Side)")
+    st.title("🔍 Diff Viewer")
 
-    # Initialize defaults
-    if "diff_original" not in st.session_state:
-        st.session_state.diff_original = "def hello():\n    print('Hello world')"
-    if "diff_modified" not in st.session_state:
-        st.session_state.diff_modified = "def hello():\n    print('Hello, Girish!')"
-
+    # Upload buttons
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("Original")
-        st.session_state.diff_original = st.text_area(
-            " ", value=st.session_state.diff_original, height=300, key="diff_original_area"
-        )
+        original_file = st.file_uploader("Upload Original File", type=["txt", "csv", "json", "xml"], key="orig_file")
     with col2:
-        st.subheader("Modified")
-        st.session_state.diff_modified = st.text_area(
-            " ", value=st.session_state.diff_modified, height=300, key="diff_modified_area"
-        )
+        modified_file = st.file_uploader("Upload Modified File", type=["txt", "csv", "json", "xml"], key="mod_file")
 
-    if st.button("View Diff (Side by Side)", type="primary"):
-        original_text = st.session_state.diff_original or ""
-        modified_text = st.session_state.diff_modified or ""
+    # Fallback text areas
+    st.markdown("### Or paste content directly below:")
+    col3, col4 = st.columns(2)
+    with col3:
+        original_text_area = st.text_area("Original content:", height=300, key="diff_original")
+    with col4:
+        modified_text_area = st.text_area("Modified content:", height=300, key="diff_modified")
 
+    # Decide source of text
+    original_text = ""
+    modified_text = ""
+    if original_file is not None:
+        original_text = original_file.read().decode("utf-8")
+    else:
+        original_text = original_text_area
+
+    if modified_file is not None:
+        modified_text = modified_file.read().decode("utf-8")
+    else:
+        modified_text = modified_text_area
+
+    # Choose diff mode
+    diff_mode = st.radio("Choose diff mode:", ["Unified (Git-style)", "Line-by-Line"], horizontal=True)
+
+    if st.button("Show Diff", type="primary"):
         if not original_text.strip() or not modified_text.strip():
-            st.warning("Please provide both original and modified content.")
+            st.warning("Please provide both original and modified content (via upload or paste).")
         else:
-            import difflib
-            hd = difflib.HtmlDiff(wrapcolumn=80)
-            html_table = hd.make_table(
-                original_text.splitlines(),
-                modified_text.splitlines(),
-                fromdesc="Original",
-                todesc="Modified",
-                context=True,
-                numlines=2
-            )
+            if diff_mode == "Unified (Git-style)":
+                diff = difflib.unified_diff(
+                    original_text.splitlines(),
+                    modified_text.splitlines(),
+                    fromfile="Original",
+                    tofile="Modified",
+                    lineterm=""
+                )
+                diff_lines = list(diff)
 
-            # Add CSS for GitHub-style coloring
-            html = f"""
-            <style>
-              table.diff {{ font-family: Menlo, Monaco, Consolas, monospace; width: 100%; border-collapse: collapse; }}
-              .diff_header {{ background: #f6f8fa; font-weight: bold; }}
-              td, th {{ border: 1px solid #e1e4e8; padding: 6px 8px; vertical-align: top; }}
-              .diff_next {{ background: #fffbe6; }}
-              .diff_add {{ background: #e6ffed; }}     /* additions: green */
-              .diff_sub {{ background: #ffeef0; }}     /* deletions: red */
-              .diff_chg {{ background: #fff5b1; }}     /* changes: yellow */
-            </style>
-            {html_table}
-            """
-            st.components.v1.html(html, height=500, scrolling=True)
+                highlighted = []
+                for line in diff_lines:
+                    if line.startswith("+") and not line.startswith("+++"):
+                        highlighted.append(f"<span style='background-color:#e6ffed'>{line}</span>")
+                    elif line.startswith("-") and not line.startswith("---"):
+                        highlighted.append(f"<span style='background-color:#ffe6e6'>{line}</span>")
+                    else:
+                        highlighted.append(line)
+
+                st.markdown(
+                    "<pre style='font-family:monospace'>" + "\n".join(highlighted) + "</pre>",
+                    unsafe_allow_html=True
+                )
+
+            elif diff_mode == "Line-by-Line":
+                orig_lines = original_text.splitlines()
+                mod_lines = modified_text.splitlines()
+                max_len = max(len(orig_lines), len(mod_lines))
+
+                rows = []
+                for i in range(max_len):
+                    orig_line = orig_lines[i] if i < len(orig_lines) else ""
+                    mod_line = mod_lines[i] if i < len(mod_lines) else ""
+
+                    if orig_line == mod_line:
+                        rows.append(
+                            f"<tr><td style='background-color:#f0f0f0'>{orig_line}</td>"
+                            f"<td style='background-color:#f0f0f0'>{mod_line}</td></tr>"
+                        )
+                    else:
+                        sm = difflib.SequenceMatcher(None, orig_line, mod_line)
+                        orig_highlight, mod_highlight = "", ""
+                        for tag, i1, i2, j1, j2 in sm.get_opcodes():
+                            if tag == "equal":
+                                orig_highlight += orig_line[i1:i2]
+                                mod_highlight += mod_line[j1:j2]
+                            elif tag == "replace":
+                                orig_highlight += f"<span style='background-color:#ffe6e6'>{orig_line[i1:i2]}</span>"
+                                mod_highlight += f"<span style='background-color:#e6ffed'>{mod_line[j1:j2]}</span>"
+                            elif tag == "delete":
+                                orig_highlight += f"<span style='background-color:#ffe6e6'>{orig_line[i1:i2]}</span>"
+                            elif tag == "insert":
+                                mod_highlight += f"<span style='background-color:#e6ffed'>{mod_line[j1:j2]}</span>"
+
+                        rows.append(
+                            f"<tr><td>{orig_highlight}</td><td>{mod_highlight}</td></tr>"
+                        )
+
+                html_table = (
+                    "<table style='width:100%; font-family:monospace; border-collapse:collapse;'>"
+                    "<tr><th style='text-align:left'>Original</th><th style='text-align:left'>Modified</th></tr>"
+                    + "".join(rows)
+                    + "</table>"
+                )
+
+                st.markdown(html_table, unsafe_allow_html=True)
 
 # ---------------- Multi-Format Conversion Section ----------------
 elif section == "Multi-Format Conversion":
