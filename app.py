@@ -2,6 +2,7 @@ import streamlit as st
 import difflib
 import json
 import xmltodict
+import pandas as pd
 from formatter import (
     format_json, format_xml, format_yaml, format_csv,
     format_toml, format_ini, format_markdown, format_html,
@@ -32,10 +33,40 @@ st.sidebar.markdown("### Multi-Format Formatter")
 # Sidebar: choose section
 section = st.sidebar.radio(
     "Choose section:",
-    ["Formatter", "Diff Viewer", "Multi-Format Conversion"],
+    ["Introduction", "Formatter", "Diff Viewer", "Multi-Format Conversion", "CSV Analysis"],
     key="section",
     on_change=clear_on_section_change
 )
+
+# ---------------- Introduction Section ----------------
+if section == "Introduction":
+    st.title("🧹 Multi-Format Formatter")
+    st.subheader("Your all-in-one tool for formatting, validating, converting, and analyzing data")
+
+    st.markdown("---")
+
+    st.markdown(
+        """
+        Welcome to **Multi-Format Formatter** — a professional utility built with Streamlit to make your data clean, structured, and insightful.  
+
+        ### ✨ Features
+        - **Formatter**: Beautify JSON, XML, YAML, CSV, TOML, INI, Markdown, HTML, SQL, and Python code.
+        - **Validation**: Validate JSON against schemas, XML with XSD, and lint YAML for correctness.
+        - **Tree Viewer**: Explore structured formats interactively.
+        - **Diff Viewer**: Compare original vs modified content side by side.
+        - **Conversion**: Seamlessly convert JSON ↔ XML.
+        - **CSV Analysis**: Upload CSVs for previews, summary statistics, column insights, and visualizations.
+        - **Download Output**: Export your formatted or validated content instantly.
+
+        ---
+        ### 🚀 Get Started
+        Use the sidebar to select a section and begin formatting, validating, or analyzing your data.
+        """
+    )
+
+    if st.button("Start Now", type="primary", icon=":material/auto_fix_high:"):
+        st.success("Choose a section from the sidebar to begin!")
+
 
 # ---------------- Formatter Section ----------------
 if section == "Formatter":
@@ -182,3 +213,74 @@ elif section == "Multi-Format Conversion":
             st.download_button("Download JSON", json_str, "converted.json", "application/json", type="primary", icon=":material/file_download:")
         except Exception as e:
             st.error(f"Conversion failed: {e}")
+
+
+elif section == "CSV Analysis":
+    st.title("📊 CSV Data Analysis")
+
+    uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
+    if uploaded_file is not None:
+        try:
+            df = pd.read_csv(uploaded_file)
+
+            st.success("CSV uploaded successfully!")
+
+            # Preview
+            st.subheader("🔎 Data Preview")
+            st.dataframe(df.head(10), use_container_width=True)
+
+            # Summary stats
+            st.subheader("📈 Summary Statistics")
+            st.write(df.describe(include="all"))
+            st.markdown("""
+            **Explanation of statistics:**
+            - count: number of non-null entries
+            - mean: average (numeric columns)
+            - std: spread of values
+            - min/max: smallest and largest values
+            - 25%, 50%, 75%: quartiles (distribution spread)
+            - unique/top/freq: categorical column insights
+            """)
+
+            # Column-wise insights
+            st.subheader("📋 Column Insights")
+            for col in df.columns:
+                st.write(f"**{col}**")
+                if pd.api.types.is_numeric_dtype(df[col]):
+                    st.write(f"- Numeric column with mean = {df[col].mean():.2f}, std = {df[col].std():.2f}")
+                    st.bar_chart(df[col].dropna())
+                else:
+                    st.write(f"- Categorical column with {df[col].nunique()} unique values")
+                    st.bar_chart(df[col].value_counts())
+
+            # Extra analytics if certain columns exist
+            if "Salary" in df.columns:
+                max_salary_row = df.loc[df["Salary"].idxmax()]
+                st.subheader("💰 Highest Salary")
+                st.write(f"{max_salary_row['Name']} ({max_salary_row['Team']}) — ${max_salary_row['Salary']:,.0f}")
+
+                st.subheader("💵 Salary Distribution")
+                st.bar_chart(df["Salary"].dropna())
+
+                st.subheader("📊 Average Salary per Group")
+                avg_salary = df.groupby("Team")["Salary"].mean().sort_values(ascending=False)
+                st.bar_chart(avg_salary)
+
+                st.subheader("🏆 Top 10 Highest Paid")
+                top10 = df.nlargest(10, "Salary")[["Name", "Salary"]].set_index("Name")
+                st.bar_chart(top10)
+
+            if "Team" in df.columns:
+                st.subheader("🏀 Players per Team")
+                st.bar_chart(df["Team"].value_counts())
+
+                st.subheader("📋 Players by Team")
+                for team, players in df.groupby("Team")["Name"]:
+                    st.markdown(f"**{team}**: {', '.join(players.dropna().tolist())}")
+
+            if "Position" in df.columns:
+                st.subheader("🧩 Position Distribution")
+                st.bar_chart(df["Position"].value_counts())
+
+        except Exception as e:
+            st.error(f"Error reading CSV: {e}")
